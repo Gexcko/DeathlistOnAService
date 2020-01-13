@@ -18,8 +18,10 @@ namespace DLoaS
         }
         
 
-        static string[] d = new string[177];
-        static ArrayList dl = new ArrayList();
+        static string[] d = new string[177];        //Anlegen der Link-Liste mit URLS
+        static ArrayList dl = new ArrayList();      //Anlegen der Liste der bereits verstorbenen
+
+        //Arrays beinhalten Index Nummern der "Opfer" in den Deathlists der Teilnehmer
         static int[] emil;
         static int[] fabian;
         static int[] jakob;
@@ -32,6 +34,7 @@ namespace DLoaS
         static int[] valentin;
         static int[] volker;
 
+        //Countervariablen der Teilnehmer
         static int emilScore = 0;
         static int fabianScore = 0;
         static int floScore = 0;
@@ -46,8 +49,9 @@ namespace DLoaS
 
         static void Main(string[] args) {
 
-            dlInit();
+            dlInit();                               //Befüllen der Link-Liste
 
+            //Befüllen der Deathlists
             emil = new int[] { 0, 3, 5, 12, 18, 20, 24, 50, 66, 80, 83, 94, 105, 118, 120, 121, 125, 131, 144, 145, 147, 158, 162, 166, 172 };
             fabian = new int[] { 5, 12, 15, 18, 20, 21, 30, 33, 55, 78, 81, 89, 94, 97, 99, 113, 118, 122, 131, 133, 146, 156, 163, 169, 172 };
             flo = new int[] { 0, 1, 5, 9, 12, 17, 19, 42, 56, 63, 76, 77, 90, 94, 98, 99, 107, 116, 118, 119, 124, 128, 130, 131, 144 };
@@ -61,15 +65,15 @@ namespace DLoaS
             volker = new int[] { 5, 15, 18, 35, 36, 37, 40, 48, 52, 58, 73, 94, 99, 101, 128, 136, 137, 141, 142, 150, 156, 157, 159, 166, 170 };
 
 
-            for (int i = 0; i<d.Length;i++) {
-                string urlAddress = d[i];
+            for (int i = 0; i<d.Length;i++) {                                                                           //Jeden Link im Array durchgehen
+                string urlAddress = d[i];                                                                               //und die jeweilige URL verwenden
                 string data = "-";
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);                                 //HTTP Anfrage
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();                                      //HTTP Antwort
 
-                if (response.StatusCode == HttpStatusCode.OK) {
-                    Stream receiveStream = response.GetResponseStream();
+                if (response.StatusCode == HttpStatusCode.OK) {                                                         //Wenn die Antwort ohne Fehler ankommt (Code: 200) dann weitermachen
+                    Stream receiveStream = response.GetResponseStream();                                                //Stream um den Text der Webseite verwenden zu können
                     StreamReader readStream = null;
 
                     if (response.CharacterSet == null) {
@@ -80,21 +84,21 @@ namespace DLoaS
                         //Console.WriteLine("");
                     }
 
-                    data = readStream.ReadToEnd();
+                    data = readStream.ReadToEnd();                                                                      //String data beinhaltet den Quellcode
 
-                    if (data.Contains("2020 deaths")) {
-                        dl.Add(i);
-                        string s = d[i].Substring(30).Replace("_", " ");
-                        Console.WriteLine(i+" - "+s);
-                    }else if(data.Contains("Gestorben 2020")){
-                        dl.Add(i);
-                        string s = d[i].Substring(30).Replace("_", " ");
-                        Console.WriteLine(i + " - " + s);
-                    }
+                    if (data.Contains("2020 deaths")) {                                                                 //Abfrage ob "2020 deaths" in den Categories vorkommt (engl. Wiki)
+                        dl.Add(i);                                                                                          //In die Todes-Liste hinzufügen
+                        string s = d[i].Substring(30).Replace("_", " ");                                                    //Vorbereitung für Console-Output
+                        Console.WriteLine(i+" - "+s);                                                                       //Console-Output
+                    }else if(data.Contains("Gestorben 2020")) {                                                         //Abfrage ob "Gestorben 2020" in den Categories vorkommt (deu. Wiki)
+                        dl.Add(i);                                                                                          //Das gleiche in Deutsch
+                        string s = d[i].Substring(30).Replace("_", " ");                                                    //
+                        Console.WriteLine(i + " - " + s);                                                                   //
+                    }                                                                                                   //
 
                     
 
-                    response.Close();
+                    response.Close();                                                                                   //Die Streams müssen geschlossen werden.
                     readStream.Close();
                 }
             }
@@ -104,6 +108,9 @@ namespace DLoaS
             //System.Environment.Exit(0);
             Console.WriteLine();
 
+
+            //Nachdem alle Einträge der Link-Liste durch sind wird die Liste der Verstorbenen mit den Deathlists der Teilnehmer verglichen.
+            //Dazu dient ein Unterprogramm "fastSearch" selbstgeschrieben als Platzhalter. (unten weiter zu finden)
             emilScore = fastSearch(dl, emil);
             fabianScore = fastSearch(dl, fabian);
             floScore = fastSearch(dl, flo);
@@ -116,6 +123,7 @@ namespace DLoaS
             valentinScore = fastSearch(dl, valentin);
             volkerScore = fastSearch(dl, volker);
 
+            //Console-Output mit allen Teilnehmern und deren Punkten
             Console.WriteLine("Emil: " + emilScore);
             Console.WriteLine("Fabian: " + fabianScore);
             Console.WriteLine("Flo: " + floScore);
@@ -128,30 +136,31 @@ namespace DLoaS
             Console.WriteLine("Valentin: " + valentinScore);
             Console.WriteLine("Volker: " + volkerScore);
 
-            string[] pD = File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt");
 
-            string[] caster = new string[dl.Count];
-            for (int i = 0;i<dl.Count;i++) {
-                caster[i] = (dl[i]+"");
-                //Console.WriteLine(i+" "+dl[i]);
-            }
+            string[] pD = File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt");                          //Einlesen des Text-Files mit den Verstorbenen, die bereits vor der Abfrage abgedankt haben
+
+            string[] caster = new string[dl.Count];                                                                     //Umwandeln der ArrayList zu String Array
+            for (int i = 0;i<dl.Count;i++) {                                                                            //
+                caster[i] = (dl[i]+"");                                                                                 //
+                //Console.WriteLine(i+" "+dl[i]);                                                                       //
+            }                                                                                                           //
 
             
-            if (pD.SequenceEqual(caster)) {
-                Console.WriteLine("Meh");
+            if (pD.SequenceEqual(caster)) {                                                                             //Besteht ein Unterschied zwischen der letzten Abfrage und der gerade abgefragten Liste?
+                Console.WriteLine("Meh");                                                                               //Nein: Kein weiterer ist verstorben
             } else {
-                string oDiff = "";
-                foreach (string diff in caster) {
-                    if (!pD.Contains(diff)) {
-                        oDiff = diff;
-                    }
-                }
+                string oDiff = "";                                                                                      //Ja:
+                foreach (string diff in caster) {                                                                       //Wer mit welchem Index
+                    if (!pD.Contains(diff)) {                                                                           //
+                        oDiff = diff;                                                                                   //
+                    }                                                                                                   //
+                }                                                                                                       //
 
                 Console.WriteLine("Heureka");
 
-                String whoPointed = "";
+                String whoPointed = "";                                                                                 //String wird der Nachricht für Pushbullet angefügt und zeigt, wer gepunktet hat
 
-                whoPointed += pointSearch(Int32.Parse(oDiff), emil, "Emil ");
+                whoPointed += pointSearch(Int32.Parse(oDiff), emil, "Emil ");                                           //Ist der Index des neuverstorbenen in der jeweiligen Liste?
                 whoPointed += pointSearch(Int32.Parse(oDiff), fabian, "Fabian ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), flo, "Flo ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), jakob, "Jakob ");
@@ -183,10 +192,10 @@ namespace DLoaS
                 }
             }
 
-            File.WriteAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt", caster);
+            File.WriteAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt", caster);                               //Neue Liste in die Datei zurückschreiben
         }
 
-        static int fastSearch(ArrayList list, int[] m) {
+        static int fastSearch(ArrayList list, int[] m) {                                                                //ArrayList und Integer Array wird vergleichen, ob ein Eintrag jeweils in beiden Listen vorkommt
             int score = 0;
             for (int i = 0; i < list.Count; i++) {
                 for (int y = 0; y < m.Length; y++) {
@@ -198,7 +207,7 @@ namespace DLoaS
             return score;
         }
 
-        static string pointSearch(int k, int[] m, String name){
+        static string pointSearch(int k, int[] m, String name){                                                         //Gleiche Abfrage nur, ob ein Wert in der Liste vorkommt.
             string score = "";
             for (int y = 0; y < m.Length; y++){
                 if (k == m[y]){
