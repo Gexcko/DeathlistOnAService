@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using PushbulletSharp;
 using PushbulletSharp.Models.Requests;
-using PushbulletSharp.Models.Responses;
+using PushoverClient;
 
-namespace DLoaS
-{
+namespace DLoaS {
     class Program {
         static Program(){
             CosturaUtility.Initialize();
@@ -20,6 +17,7 @@ namespace DLoaS
 
         static string[] d = new string[177];        //Anlegen der Link-Liste mit URLS
         static ArrayList dl = new ArrayList();      //Anlegen der Liste der bereits verstorbenen
+
 
         //Arrays beinhalten Index Nummern der "Opfer" in den Deathlists der Teilnehmer
         static int[] emil;
@@ -48,7 +46,7 @@ namespace DLoaS
         static int volkerScore = 0;
 
         static void Main(string[] args) {
-
+            
             dlInit();                               //Befüllen der Link-Liste
 
             //Befüllen der Deathlists
@@ -136,9 +134,13 @@ namespace DLoaS
             Console.WriteLine("Valentin: " + valentinScore);
             Console.WriteLine("Volker: " + volkerScore);
 
+            string[] pD = { };
+            try {
+                pD = File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt");                          //Einlesen des Text-Files mit den Verstorbenen, die bereits vor der Abfrage abgedankt haben
+            }catch(FileNotFoundException e) {
+                File.WriteAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt", pD);
 
-            string[] pD = File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt");                          //Einlesen des Text-Files mit den Verstorbenen, die bereits vor der Abfrage abgedankt haben
-
+            }
             string[] caster = new string[dl.Count];                                                                     //Umwandeln der ArrayList zu String Array
             for (int i = 0;i<dl.Count;i++) {                                                                            //
                 caster[i] = (dl[i]+"");                                                                                 //
@@ -167,14 +169,13 @@ namespace DLoaS
                 whoPointed += pointSearch(Int32.Parse(oDiff), jasi, "Jasi ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), manu, "Manu ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), michi, "Michi ");
-                whoPointed += pointSearch(Int32.Parse(oDiff), miri, "miri ");
+                whoPointed += pointSearch(Int32.Parse(oDiff), miri, "Miri ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), phoenix, "Phoenix ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), valentin, "Valentin ");
                 whoPointed += pointSearch(Int32.Parse(oDiff), volker, "Volker ");
 
                 //Client erstellen
-                var apiKey = "o.xbEidwElVYGVSDK5F1uX0r1ZyVe5ovSt";
-                PushbulletClient client = new PushbulletClient(apiKey);
+                PushbulletClient client = new PushbulletClient("o.xbEidwElVYGVSDK5F1uX0r1ZyVe5ovSt");
 
                 //Informationen über unseren Account abholen
                 var currentUserInformation = client.CurrentUsersInformation();
@@ -188,8 +189,16 @@ namespace DLoaS
                         Body = "RIP "+ d[Int32.Parse(oDiff)].Substring(30).Replace("_", " ") + "\n" + whoPointed
                     };
 
-                    PushResponse response = client.PushNote(request);
+                    PushbulletSharp.Models.Responses.PushResponse response = client.PushNote(request);
                 }
+
+                Pushover pclient = new Pushover("asf1vbpvec3x6h288p46nu8xj2i6xb");
+                PushoverClient.PushResponse responsePO = pclient.Push(
+                              "Deathlist 2020",
+                              "RIP " + d[Int32.Parse(oDiff)].Substring(30).Replace("_", " ") + "\n" + whoPointed,
+                              "g3kf5dfnarwrkemmf35vimf2hxcyyz"
+                          );
+
             }
 
             File.WriteAllLines(AppDomain.CurrentDomain.BaseDirectory + "pD.txt", caster);                               //Neue Liste in die Datei zurückschreiben
